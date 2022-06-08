@@ -25,40 +25,39 @@ class MinefieldScreen extends StatelessWidget {
           builder: (context, snapshot) {
             if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox();
             final minefield = snapshot.data!;
-            return GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: minefield.length),
-              itemCount: minefield.length,
-              itemBuilder: (context, indexX) => SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: minefield[indexX].length),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: minefield[indexX].length,
-                    itemBuilder: (context, indexY) {
-                      Color cardColor = Colors.white30;
-                      if (minefield[indexX][indexY] != null) {
-                        if (minefield[indexX][indexY] != -1) {
-                          cardColor = Colors.green;
-                        } else {
-                          cardColor = Colors.red;
+            return LayoutBuilder(
+              builder: (context, constraints) => GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      childAspectRatio:  constraints.maxHeight/constraints.maxWidth,
+                      crossAxisCount: minefield.length),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: minefield.length * minefield.length,
+                      itemBuilder: (context, index) {
+                        int indexL = index % minefield.length;
+                        int indexC = index ~/ minefield.length;
+                        Color cardColor = Colors.white30;
+                        if (minefield[indexL][indexC] != null) {
+                          if (minefield[indexL][indexC] != -1) {
+                            cardColor = Colors.green;
+                          } else {
+                            cardColor = Colors.red;
+                          }
                         }
-                      }
-                      return GestureDetector(
-                        onTap: () async => await controller.revealField(x: indexX, y: indexY),
-                        child: GridTile(
-                          child: Card(
-                            color: cardColor,
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text("${minefield[indexX][indexY] ?? ''}"),
+                        return GestureDetector(
+                          onTap: () async => await controller.revealField(x: indexL, y: indexC),
+                          child: GridTile(
+                            child: Card(
+                              color: cardColor,
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: Text("${minefield[indexL][indexC] ?? ''}"),
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      } //
               ),
-            );
+            );//
           },
         ),
       ),
