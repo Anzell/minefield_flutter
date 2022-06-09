@@ -1,1 +1,1 @@
-enum GameDificulties { easy, normal, expert }
+enum GameDificulties { easy, normal, expert, custom }

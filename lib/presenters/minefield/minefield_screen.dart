@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:minefield/core/constants/game_dificulties.dart';
+import 'package:minefield/domain/entities/custom_dificulty.dart';
 import 'dart:math';
 import 'package:minefield/presenters/minefield/controller/minefield_controller.dart';
 
@@ -13,14 +14,15 @@ class MinefieldScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.initializeMinefield(dificulty: _params.dificulty);
+    controller.initializeMinefield(dificulty: _params.dificulty, customDificulty: _params.customDificulty);
     _initReactionLost(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Jogo"),
         actions: [
           TextButton(
-            onPressed: () => controller.initializeMinefield(dificulty: _params.dificulty),
+            onPressed: () =>
+                controller.initializeMinefield(dificulty: _params.dificulty, customDificulty: _params.customDificulty),
             child: const Text(
               "Reiniciar",
               style: TextStyle(color: Colors.white),
@@ -39,9 +41,11 @@ class MinefieldScreen extends StatelessWidget {
             return LayoutBuilder(
               builder: (context, constraints) => GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      childAspectRatio: constraints.maxHeight / constraints.maxWidth, crossAxisCount: minefield.length),
+                    childAspectRatio: constraints.maxHeight / constraints.maxWidth,
+                    crossAxisCount: minefield[0].length,
+                  ),
                   scrollDirection: Axis.horizontal,
-                  itemCount: minefield.length * minefield.length,
+                  itemCount: minefield.length * minefield[0].length,
                   itemBuilder: (context, index) {
                     final indexL = index % minefield.length;
                     final indexC = index ~/ minefield.length;
@@ -90,7 +94,6 @@ class MinefieldScreen extends StatelessWidget {
             content: Text("KABUM"),
           ),
         );
-        //Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
       }
     });
   }
@@ -148,6 +151,7 @@ class _RevealedField extends StatelessWidget {
 
 class MinefieldScreenParams {
   final GameDificulties dificulty;
+  final CustomDificulty? customDificulty;
 
-  MinefieldScreenParams({required this.dificulty});
+  MinefieldScreenParams({required this.dificulty, this.customDificulty});
 }

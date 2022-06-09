@@ -14,7 +14,7 @@ class AppWidget extends StatelessWidget {
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
           case AppRoutes.home:
-            return MaterialPageRoute(builder: (_) => const HomeScreen());
+            return MaterialPageRoute(builder: (_) => HomeScreen());
           case (AppRoutes.minefield):
             return MaterialPageRoute(
                 builder: (_) => MinefieldScreen(params: (settings.arguments as MinefieldScreenParams)));

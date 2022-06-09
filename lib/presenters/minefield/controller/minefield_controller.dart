@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:minefield/core/constants/game_dificulties.dart';
+import 'package:minefield/domain/entities/custom_dificulty.dart';
 
 class MinefieldController {
   List<List<int?>> _minefield = [];
@@ -14,6 +15,7 @@ class MinefieldController {
   bool _startedGame = false;
 
   late GameDificulties _dificulty;
+  CustomDificulty? _customDificulty;
 
   Stream<List<List<int?>>> getMinefieldStream() {
     return _playMinefieldStream.stream;
@@ -23,8 +25,9 @@ class MinefieldController {
     return _lostStream.stream;
   }
 
-  void initializeMinefield({required GameDificulties dificulty}) {
+  void initializeMinefield({required GameDificulties dificulty, CustomDificulty? customDificulty}) {
     _dificulty = dificulty;
+    _customDificulty = customDificulty;
     _startedGame = false;
     _playMinefield = _createmptyList();
     _minefield = _createmptyList();
@@ -34,11 +37,12 @@ class MinefieldController {
 
   List<List<int?>> _createmptyList() {
     final List<List<int?>> tempField = [];
-    int width = _getWidthMinefield();
+    int widthL = _getWidthLMinefield();
+    int widthC = _getWidthCMinefield();
 
-    for (int x = 0; x < width; x++) {
+    for (int x = 0; x < widthL; x++) {
       tempField.add([]);
-      for (int y = 0; y < width; y++) {
+      for (int y = 0; y < widthC; y++) {
         tempField[x].add(null);
       }
     }
@@ -52,12 +56,13 @@ class MinefieldController {
         tempField[l][c] = _playMinefield[l][c];
       }
     }
-    int width = _getWidthMinefield();
+    int widthL = _getWidthLMinefield();
+    int widthC = _getWidthCMinefield();
     int bombs = _getBombsNumberMinefield();
 
     while (bombs > 0) {
-      final tempX = Random().nextInt(width);
-      final tempY = Random().nextInt(width);
+      final tempX = Random().nextInt(widthL);
+      final tempY = Random().nextInt(widthC);
       if (tempField[tempX][tempY] == null) {
         tempField[tempX][tempY] = -1;
         bombs--;
@@ -66,7 +71,7 @@ class MinefieldController {
     return tempField;
   }
 
-  int _getWidthMinefield() {
+  int _getWidthLMinefield() {
     switch (_dificulty) {
       case GameDificulties.easy:
         return 3;
@@ -74,6 +79,23 @@ class MinefieldController {
         return 5;
       case GameDificulties.expert:
         return 10;
+      case GameDificulties.custom:
+        return _customDificulty!.widthL;
+      default:
+        return 0;
+    }
+  }
+
+  int _getWidthCMinefield() {
+    switch (_dificulty) {
+      case GameDificulties.easy:
+        return 3;
+      case GameDificulties.normal:
+        return 5;
+      case GameDificulties.expert:
+        return 10;
+      case GameDificulties.custom:
+        return _customDificulty!.widthC;
       default:
         return 0;
     }
@@ -87,6 +109,8 @@ class MinefieldController {
         return 8;
       case GameDificulties.expert:
         return 20;
+      case GameDificulties.custom:
+        return _customDificulty!.bombsNumber;
       default:
         return 0;
     }
