@@ -25,6 +25,7 @@ class MinefieldController {
 
   void initializeMinefield({required GameDificulties dificulty}) {
     _dificulty = dificulty;
+    _startedGame = false;
     _playMinefield = _createmptyList();
     _minefield = _createmptyList();
     _playMinefieldStream.sink.add(_playMinefield);
