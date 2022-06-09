@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:minefield/core/constants/game_dificulties.dart';
-
+import 'dart:math';
 import 'package:minefield/presenters/minefield/controller/minefield_controller.dart';
 
 class MinefieldScreen extends StatelessWidget {
@@ -28,36 +28,50 @@ class MinefieldScreen extends StatelessWidget {
             return LayoutBuilder(
               builder: (context, constraints) => GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      childAspectRatio:  constraints.maxHeight/constraints.maxWidth,
-                      crossAxisCount: minefield.length),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: minefield.length * minefield.length,
-                      itemBuilder: (context, index) {
-                        int indexL = index % minefield.length;
-                        int indexC = index ~/ minefield.length;
-                        Color cardColor = Colors.white30;
-                        if (minefield[indexL][indexC] != null) {
-                          if (minefield[indexL][indexC] != -1) {
-                            cardColor = Colors.green;
-                          } else {
-                            cardColor = Colors.red;
-                          }
-                        }
-                        return GestureDetector(
-                          onTap: () async => await controller.revealField(x: indexL, y: indexC),
-                          child: GridTile(
-                            child: Card(
-                              color: cardColor,
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text("${minefield[indexL][indexC] ?? ''}"),
-                              ),
-                            ),
-                          ),
-                        );
-                      } //
-              ),
-            );//
+                      childAspectRatio: constraints.maxHeight / constraints.maxWidth, crossAxisCount: minefield.length),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: minefield.length * minefield.length,
+                  itemBuilder: (context, index) {
+                    int indexL = index % minefield.length;
+                    int indexC = index ~/ minefield.length;
+                    Color cardColor = Colors.white30;
+
+                    if (minefield[indexL][indexC] != null) {
+                      if (minefield[indexL][indexC] != -1) {
+                        cardColor = Colors.green;
+                      } else {
+                        cardColor = Colors.red;
+                      }
+                    }
+                    final widget = minefield[indexL][indexC] == null
+                        ? _AvailableField(
+                            onTap: () async => await controller.revealField(x: indexL, y: indexC),
+                            label: "${minefield[indexL][indexC] ?? ''}",
+                          )
+                        : _RevealedField(
+                            isBomb: minefield[indexL][indexC] == -1, label: "${minefield[indexL][indexC]}");
+                    return AnimatedSwitcher(
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          final rotate = Tween(begin: pi, end: 0.0).animate(animation);
+                          return AnimatedBuilder(
+                              animation: rotate,
+                              child: child,
+                              builder: (BuildContext context, Widget? child) {
+                                final angle = (ValueKey(widget is _AvailableField) != widget.key)
+                                    ? min(rotate.value, pi / 2)
+                                    : rotate.value;
+                                return Transform(
+                                  transform: Matrix4.rotationY(angle),
+                                  child: child,
+                                  alignment: Alignment.center,
+                                );
+                              });
+                        },
+                        duration: const Duration(milliseconds: 400),
+                        child: widget);
+                  } //
+                  ),
+            ); //
           },
         ),
       ),
@@ -73,9 +87,58 @@ class MinefieldScreen extends StatelessWidget {
             content: Text("KABUM"),
           ),
         );
-        Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
+        //Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
       }
     });
+  }
+}
+
+class _AvailableField extends StatelessWidget {
+  const _AvailableField({Key? key, required this.label, required this.onTap}) : super(key: key);
+
+  final Function() onTap;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GridTile(
+        child: Card(
+          child: Align(
+            alignment: Alignment.center,
+            child: Text(label),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RevealedField extends StatelessWidget {
+  const _RevealedField({Key? key, required this.isBomb, required this.label}) : super(key: key);
+
+  final String label;
+  final bool isBomb;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => GridTile(
+        child: Card(
+          color: isBomb ? Colors.red : Colors.green,
+          child: Align(
+            alignment: Alignment.center,
+            child: !isBomb
+                ? Text(label)
+                : Image.asset(
+                    "assets/bomb.png",
+                    width: constraints.maxWidth / 2,
+                  ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

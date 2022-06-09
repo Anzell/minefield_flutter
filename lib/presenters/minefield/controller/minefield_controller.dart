@@ -46,8 +46,8 @@ class MinefieldController {
 
   List<List<int?>> _createMinefieldWithBombs() {
     List<List<int?>> tempField = _createmptyList();
-    for(int l = 0; l < tempField.length; l++){
-      for(int c = 0; c < tempField[l].length; c++){
+    for (int l = 0; l < tempField.length; l++) {
+      for (int c = 0; c < tempField[l].length; c++) {
         tempField[l][c] = _playMinefield[l][c];
       }
     }
@@ -92,54 +92,51 @@ class MinefieldController {
   }
 
   Future<void> revealField({required int x, required int y}) async {
-    if (_minefield[x][y] == -1 && _startedGame) {
+    if (_positionIsABomb(l: x, c: y) && _startedGame) {
       _lostStream.sink.add(true);
+      _playMinefield[x][y] = -1;
     } else {
-      _playMinefield[x][y] = _minefield[x][y];
       _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
-      _playMinefieldStream.sink.add(_playMinefield);
     }
-    if(!_startedGame){
+    if (!_startedGame) {
       _startedGame = true;
       _minefield = _createMinefieldWithBombs();
       _minefieldStream.sink.add(_minefield);
-      _playMinefield[x][y] = _minefield[x][y];
-      _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
-      _playMinefieldStream.sink.add(_playMinefield);
     }
+    _playMinefieldStream.sink.add(_playMinefield);
   }
 
   int _getNumberOfBombsAroundPosition({required int l, required int c}) {
     int countBombs = 0;
-    if(_positionIsABomb(l: l-1, c: c-1)){
+    if (_positionIsABomb(l: l - 1, c: c - 1)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l-1, c: c)){
+    if (_positionIsABomb(l: l - 1, c: c)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l-1, c: c+1)){
+    if (_positionIsABomb(l: l - 1, c: c + 1)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l, c: c-1)){
+    if (_positionIsABomb(l: l, c: c - 1)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l, c: c+1)){
+    if (_positionIsABomb(l: l, c: c + 1)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l+1, c: c-1)){
+    if (_positionIsABomb(l: l + 1, c: c - 1)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l+1, c: c)){
+    if (_positionIsABomb(l: l + 1, c: c)) {
       countBombs++;
     }
-    if(_positionIsABomb(l: l+1, c: c+1)){
+    if (_positionIsABomb(l: l + 1, c: c + 1)) {
       countBombs++;
     }
     return countBombs;
   }
 
   bool _positionIsABomb({required int l, required int c}) {
-    if(l<0 || c < 0 || l >= _minefield.length || c >= _minefield[l].length){
+    if (l < 0 || c < 0 || l >= _minefield.length || c >= _minefield[l].length) {
       return false;
     }
     return _minefield[l][c] == -1;
