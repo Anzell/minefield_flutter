@@ -82,9 +82,7 @@ class MinefieldScreen extends StatelessWidget {
                         if(!snapshot.hasData || !snapshot.data!){
                           return SizedBox();
                         }
-
                         return Container(
-                          color: Colors.white38,
                           width: constraints.maxWidth,
                           height: constraints.maxHeight,
                           child: LottieBuilder.asset('assets/explosion.json'),
@@ -143,8 +141,8 @@ class _RevealedField extends StatelessWidget {
                     bombsAround > 0 ? "$bombsAround" : '',
                     style: TextStyle(fontFamily: "Defused", fontSize: constraints.maxWidth / 4),
                   )
-                : Image.asset(
-                    "assets/bomb.png",
+                : LottieBuilder.asset(
+                    "assets/bomb.json",
                     width: constraints.maxWidth / 2,
                   ),
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:minefield/core/constants/game_dificulties.dart';
+import 'package:minefield/di/injector.dart';
 import 'package:minefield/domain/entities/custom_dificulty.dart';
+import 'package:minefield/presenters/home/controller/home_controller.dart';
 import 'package:minefield/presenters/minefield/minefield_screen.dart';
 import 'package:minefield/presenters/shared/custom_button.dart';
 import 'package:minefield/presenters/shared/custom_spacer.dart';
@@ -25,20 +27,11 @@ class HomeScreen extends StatelessWidget {
             children: [
               const Text("Selecione o tamanho do tabuleiro"),
               const Space(),
-              CustomButton(
-                  onPressed: () => Navigator.pushNamed(context, "/minefield",
-                      arguments: MinefieldScreenParams(dificulty: GameDificulties.easy)),
-                  label: "3x3"),
+              CustomButton(onPressed: () => Navigator.pushNamed(context, "/minefield", arguments: MinefieldScreenParams(dificulty: GameDificulties.easy)), label: "3x3"),
               const Space(),
-              CustomButton(
-                  onPressed: () => Navigator.pushNamed(context, "/minefield",
-                      arguments: MinefieldScreenParams(dificulty: GameDificulties.normal)),
-                  label: "5x5"),
+              CustomButton(onPressed: () => Navigator.pushNamed(context, "/minefield", arguments: MinefieldScreenParams(dificulty: GameDificulties.normal)), label: "5x5"),
               const Space(),
-              CustomButton(
-                  onPressed: () => Navigator.pushNamed(context, "/minefield",
-                      arguments: MinefieldScreenParams(dificulty: GameDificulties.expert)),
-                  label: "10x10"),
+              CustomButton(onPressed: () => Navigator.pushNamed(context, "/minefield", arguments: MinefieldScreenParams(dificulty: GameDificulties.expert)), label: "10x10"),
               const Space(),
               const Space(),
               const Space(),
@@ -48,33 +41,42 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                        child: TextFormField(
-                            controller: _widthCController, decoration: InputDecoration(label: Text("Largura")))),
+                    Expanded(child: TextFormField(controller: _widthCController, decoration: InputDecoration(label: Text("Colunas")))),
                     const SizedBox(width: 20),
-                    Expanded(
-                        child: TextFormField(
-                            controller: _widthLController, decoration: InputDecoration(label: Text("Altura")))),
+                    Expanded(child: TextFormField(controller: _widthLController, decoration: InputDecoration(label: Text("Linhas")))),
                     const SizedBox(width: 20),
-                    Expanded(
-                        child: TextFormField(
-                            controller: _bombsNumberController,
-                            decoration: InputDecoration(label: Text("Numero de bombas")))),
+                    Expanded(child: TextFormField(controller: _bombsNumberController, decoration: InputDecoration(label: Text("Numero de bombas")))),
                   ],
                 ),
               ),
               const Space(),
               CustomButton(
-                  onPressed: () => Navigator.pushNamed(context, "/minefield",
-                      arguments: MinefieldScreenParams(
-                        dificulty: GameDificulties.custom,
-                        customDificulty: CustomDificulty(
-                          widthL: int.parse(_widthLController.text),
-                          widthC: int.parse(_widthCController.text),
-                          bombsNumber: int.parse(_bombsNumberController.text),
+                onPressed: () {
+                  final controller = getIt<HomeController>();
+                  final convertedDificulty = controller.validateGameDificulty(
+                    widthL: _widthLController.text,
+                    widthC: _widthCController.text,
+                    numberBombs: _bombsNumberController.text,
+                  );
+                  if (controller.failure.isNone()) {
+                    return Navigator.pushNamed(
+                      context,
+                      "/minefield",
+                      arguments: MinefieldScreenParams(dificulty: GameDificulties.custom, customDificulty: convertedDificulty!),
+                    );
+                  } else {
+                    controller.failure.map(
+                      (a) => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          content: Text(a.toString()),
                         ),
-                      )),
-                  label: "Criar")
+                      ),
+                    );
+                  }
+                },
+                label: "Criar",
+              )
             ],
           ),
         ),

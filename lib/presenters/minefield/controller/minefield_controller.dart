@@ -123,6 +123,7 @@ class MinefieldController {
         _revealAllBombsPosition();
         Future.delayed(Duration(seconds: 5), () {
           _lostStream.sink.add(false);
+          initializeMinefield(dificulty: _dificulty);
         });
       } else {
         _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
