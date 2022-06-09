@@ -16,7 +16,6 @@ class MinefieldScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     controller.initializeMinefield(dificulty: _params.dificulty, customDificulty: _params.customDificulty);
-    _initReactionLost(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Jogo"),
@@ -39,42 +38,60 @@ class MinefieldScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox();
             final minefield = snapshot.data!;
             return LayoutBuilder(
-              builder: (context, constraints) => GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    childAspectRatio: constraints.maxHeight / constraints.maxWidth,
-                    crossAxisCount: minefield[0].length,
-                  ),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: minefield.length * minefield[0].length,
-                  itemBuilder: (context, index) {
-                    final indexL = index % minefield.length;
-                    final indexC = index ~/ minefield.length;
-                    final bombsAround = minefield[indexL][indexC] ?? 0;
-                    final widget = minefield[indexL][indexC] == null
-                        ? _AvailableField(
-                            onTap: () async => await controller.revealField(x: indexL, y: indexC),
-                          )
-                        : _RevealedField(isBomb: minefield[indexL][indexC] == -1, bombsAround: bombsAround);
-                    return AnimatedSwitcher(
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        final rotate = Tween(begin: pi, end: 0.0).animate(animation);
-                        return AnimatedBuilder(
-                            animation: rotate,
-                            child: child,
-                            builder: (BuildContext context, Widget? child) {
-                              final angle = (ValueKey(widget is _AvailableField) != widget.key) ? min(rotate.value, pi / 2) : rotate.value;
-                              return Transform(
-                                transform: Matrix4.rotationY(angle),
+              builder: (context, constraints) => Stack(
+                children: [
+                  GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        childAspectRatio: constraints.maxHeight / constraints.maxWidth,
+                        crossAxisCount: minefield[0].length,
+                      ),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: minefield.length * minefield[0].length,
+                      itemBuilder: (context, index) {
+                        final indexL = index % minefield.length;
+                        final indexC = index ~/ minefield.length;
+                        final bombsAround = minefield[indexL][indexC] ?? 0;
+                        final widget = minefield[indexL][indexC] == null
+                            ? _AvailableField(
+                                onTap: () async => await controller.revealField(x: indexL, y: indexC),
+                              )
+                            : _RevealedField(isBomb: minefield[indexL][indexC] == -1, bombsAround: bombsAround);
+                        return AnimatedSwitcher(
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            final rotate = Tween(begin: pi, end: 0.0).animate(animation);
+                            return AnimatedBuilder(
+                                animation: rotate,
                                 child: child,
-                                alignment: Alignment.center,
-                              );
-                            });
-                      },
-                      duration: const Duration(milliseconds: 400),
-                      child: widget,
-                    );
-                  } //
-                  ),
+                                builder: (BuildContext context, Widget? child) {
+                                  final angle = (ValueKey(widget is _AvailableField) != widget.key) ? min(rotate.value, pi / 2) : rotate.value;
+                                  return Transform(
+                                    transform: Matrix4.rotationY(angle),
+                                    child: child,
+                                    alignment: Alignment.center,
+                                  );
+                                });
+                          },
+                          duration: const Duration(milliseconds: 400),
+                          child: widget,
+                        );
+                      } //
+                      ),
+                  StreamBuilder<bool>(
+                      stream: controller.getLostStream(),
+                      builder: (context, snapshot) {
+                        if(!snapshot.hasData || !snapshot.data!){
+                          return SizedBox();
+                        }
+
+                        return Container(
+                          color: Colors.white38,
+                          width: constraints.maxWidth,
+                          height: constraints.maxHeight,
+                          child: LottieBuilder.asset('assets/explosion.json'),
+                        );
+                      },)
+                ],
+              ),
             ); //
           },
         ),
@@ -82,21 +99,6 @@ class MinefieldScreen extends StatelessWidget {
     );
   }
 
-  void _initReactionLost(BuildContext context) {
-    controller.getLostStream().listen((lost) async {
-      if (lost) {
-        await showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            content: SizedBox(
-              child: LottieBuilder.asset('assets/explosion.json'),
-            ),
-          ),
-        );
-
-      }
-    });
-  }
 }
 
 class _AvailableField extends StatelessWidget {
@@ -137,7 +139,10 @@ class _RevealedField extends StatelessWidget {
           child: Align(
             alignment: Alignment.center,
             child: !isBomb
-                ? Text(bombsAround > 0 ? "$bombsAround" : '', style: TextStyle(fontFamily: "Defused", fontSize: constraints.maxWidth / 4),)
+                ? Text(
+                    bombsAround > 0 ? "$bombsAround" : '',
+                    style: TextStyle(fontFamily: "Defused", fontSize: constraints.maxWidth / 4),
+                  )
                 : Image.asset(
                     "assets/bomb.png",
                     width: constraints.maxWidth / 2,

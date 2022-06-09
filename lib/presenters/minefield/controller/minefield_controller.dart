@@ -121,6 +121,9 @@ class MinefieldController {
       if (_positionIsABomb(l: x, c: y) && _startedGame) {
         _lostStream.sink.add(true);
         _revealAllBombsPosition();
+        Future.delayed(Duration(seconds: 5), () {
+          _lostStream.sink.add(false);
+        });
       } else {
         _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
       }
