@@ -7,10 +7,12 @@ import 'package:minefield/domain/entities/custom_dificulty.dart';
 class MinefieldController {
   List<List<int?>> _minefield = [];
   List<List<int?>> _playMinefield = [];
+  int _remainingEmptyFields = 0;
 
   final _minefieldStream = StreamController<List<List<int?>>>();
   final _playMinefieldStream = StreamController<List<List<int?>>>();
   final _lostStream = StreamController<bool>();
+  final _winStream = StreamController<bool>();
 
   bool _startedGame = false;
 
@@ -25,12 +27,17 @@ class MinefieldController {
     return _lostStream.stream;
   }
 
+  Stream<bool> getWinStream(){
+    return _winStream.stream;
+  }
+
   void initializeMinefield({required GameDificulties dificulty, CustomDificulty? customDificulty}) {
     _dificulty = dificulty;
     _customDificulty = customDificulty;
     _startedGame = false;
     _playMinefield = _createmptyList();
     _minefield = _createmptyList();
+    _remainingEmptyFields = (_getWidthCMinefield() * _getWidthLMinefield()) - _getBombsNumberMinefield();
     _playMinefieldStream.sink.add(_playMinefield);
     _minefieldStream.sink.add(_minefield);
   }
@@ -127,6 +134,7 @@ class MinefieldController {
         });
       } else {
         _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
+        _remainingEmptyFields--;
       }
       if (!_startedGame) {
         _startedGame = true;
@@ -159,6 +167,14 @@ class MinefieldController {
         if (!_isBorder(l: x + 1, c: y + 1)) {
           revealField(x: x + 1, y: y + 1);
         }
+      }
+      if(_remainingEmptyFields == 0){
+        _winStream.sink.add(true);
+        _revealAllBombsPosition();
+        Future.delayed(Duration(seconds: 5), () {
+          _winStream.sink.add(false);
+          initializeMinefield(dificulty: _dificulty, customDificulty: _customDificulty);
+        });
       }
       _playMinefieldStream.sink.add(_playMinefield);
     }

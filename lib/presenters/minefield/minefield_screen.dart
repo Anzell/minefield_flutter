@@ -77,17 +77,31 @@ class MinefieldScreen extends StatelessWidget {
                       } //
                       ),
                   StreamBuilder<bool>(
-                      stream: controller.getLostStream(),
-                      builder: (context, snapshot) {
-                        if(!snapshot.hasData || !snapshot.data!){
-                          return SizedBox();
-                        }
-                        return Container(
-                          width: constraints.maxWidth,
-                          height: constraints.maxHeight,
-                          child: LottieBuilder.asset('assets/explosion.json'),
-                        );
-                      },)
+                    stream: controller.getLostStream(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || !snapshot.data!) {
+                        return SizedBox();
+                      }
+                      return Container(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        child: LottieBuilder.asset('assets/explosion.json'),
+                      );
+                    },
+                  ),
+                  StreamBuilder<bool>(
+                    stream: controller.getWinStream(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || !snapshot.data!) {
+                        return SizedBox();
+                      }
+                      return Container(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        child: LottieBuilder.asset('assets/win.json'),
+                      );
+                    },
+                  )
                 ],
               ),
             ); //
@@ -96,7 +110,6 @@ class MinefieldScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _AvailableField extends StatelessWidget {
