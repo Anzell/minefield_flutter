@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:minefield/core/constants/game_dificulties.dart';
 import 'package:minefield/domain/entities/custom_dificulty.dart';
 import 'dart:math';
@@ -21,8 +22,7 @@ class MinefieldScreen extends StatelessWidget {
         title: const Text("Jogo"),
         actions: [
           TextButton(
-            onPressed: () =>
-                controller.initializeMinefield(dificulty: _params.dificulty, customDificulty: _params.customDificulty),
+            onPressed: () => controller.initializeMinefield(dificulty: _params.dificulty, customDificulty: _params.customDificulty),
             child: const Text(
               "Reiniciar",
               style: TextStyle(color: Colors.white),
@@ -49,33 +49,30 @@ class MinefieldScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final indexL = index % minefield.length;
                     final indexC = index ~/ minefield.length;
-                    final cardInfo = minefield[indexL][indexC] != null && minefield[indexL][indexC] != 0
-                        ? "${minefield[indexL][indexC]}"
-                        : '';
+                    final bombsAround = minefield[indexL][indexC] ?? 0;
                     final widget = minefield[indexL][indexC] == null
                         ? _AvailableField(
                             onTap: () async => await controller.revealField(x: indexL, y: indexC),
                           )
-                        : _RevealedField(isBomb: minefield[indexL][indexC] == -1, label: cardInfo);
+                        : _RevealedField(isBomb: minefield[indexL][indexC] == -1, bombsAround: bombsAround);
                     return AnimatedSwitcher(
-                        transitionBuilder: (Widget child, Animation<double> animation) {
-                          final rotate = Tween(begin: pi, end: 0.0).animate(animation);
-                          return AnimatedBuilder(
-                              animation: rotate,
-                              child: child,
-                              builder: (BuildContext context, Widget? child) {
-                                final angle = (ValueKey(widget is _AvailableField) != widget.key)
-                                    ? min(rotate.value, pi / 2)
-                                    : rotate.value;
-                                return Transform(
-                                  transform: Matrix4.rotationY(angle),
-                                  child: child,
-                                  alignment: Alignment.center,
-                                );
-                              });
-                        },
-                        duration: const Duration(milliseconds: 400),
-                        child: widget);
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        final rotate = Tween(begin: pi, end: 0.0).animate(animation);
+                        return AnimatedBuilder(
+                            animation: rotate,
+                            child: child,
+                            builder: (BuildContext context, Widget? child) {
+                              final angle = (ValueKey(widget is _AvailableField) != widget.key) ? min(rotate.value, pi / 2) : rotate.value;
+                              return Transform(
+                                transform: Matrix4.rotationY(angle),
+                                child: child,
+                                alignment: Alignment.center,
+                              );
+                            });
+                      },
+                      duration: const Duration(milliseconds: 400),
+                      child: widget,
+                    );
                   } //
                   ),
             ); //
@@ -90,10 +87,13 @@ class MinefieldScreen extends StatelessWidget {
       if (lost) {
         await showDialog(
           context: context,
-          builder: (_) => const AlertDialog(
-            content: Text("KABUM"),
+          builder: (_) => AlertDialog(
+            content: SizedBox(
+              child: LottieBuilder.asset('assets/explosion.json'),
+            ),
           ),
         );
+
       }
     });
   }
@@ -123,9 +123,9 @@ class _AvailableField extends StatelessWidget {
 }
 
 class _RevealedField extends StatelessWidget {
-  const _RevealedField({Key? key, required this.isBomb, required this.label}) : super(key: key);
+  const _RevealedField({Key? key, required this.isBomb, required this.bombsAround}) : super(key: key);
 
-  final String label;
+  final int bombsAround;
   final bool isBomb;
 
   @override
@@ -133,11 +133,11 @@ class _RevealedField extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) => GridTile(
         child: Card(
-          color: isBomb ? Colors.red : Colors.green,
+          color: _getColor(),
           child: Align(
             alignment: Alignment.center,
             child: !isBomb
-                ? Text(label)
+                ? Text(bombsAround > 0 ? "$bombsAround" : '', style: TextStyle(fontFamily: "Defused", fontSize: constraints.maxWidth / 4),)
                 : Image.asset(
                     "assets/bomb.png",
                     width: constraints.maxWidth / 2,
@@ -146,6 +146,15 @@ class _RevealedField extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getColor() {
+    Color colorCard = isBomb ? Colors.red : Colors.green;
+    if (!isBomb) {
+      colorCard = Color.fromRGBO(217, 175, 255 - (bombsAround * 50), 1);
+    }
+    colorCard = bombsAround == 0 ? Colors.white54 : colorCard;
+    return colorCard;
   }
 }
 
