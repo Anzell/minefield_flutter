@@ -23,17 +23,17 @@ class HomeScreen extends StatelessWidget {
               CustomButton(
                   onPressed: () => Navigator.pushNamed(context, "/minefield",
                       arguments: MinefieldScreenParams(dificulty: GameDificulties.easy)),
-                  label: "Fácil"),
+                  label: "3x3"),
               const Space(),
               CustomButton(
                   onPressed: () => Navigator.pushNamed(context, "/minefield",
                       arguments: MinefieldScreenParams(dificulty: GameDificulties.normal)),
-                  label: "Normal"),
+                  label: "5x5"),
               const Space(),
               CustomButton(
                   onPressed: () => Navigator.pushNamed(context, "/minefield",
                       arguments: MinefieldScreenParams(dificulty: GameDificulties.expert)),
-                  label: "Díficil"),
+                  label: "10x10"),
             ],
           ),
         ),

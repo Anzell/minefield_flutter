@@ -32,24 +32,16 @@ class MinefieldScreen extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: minefield.length * minefield.length,
                   itemBuilder: (context, index) {
-                    int indexL = index % minefield.length;
-                    int indexC = index ~/ minefield.length;
-                    Color cardColor = Colors.white30;
-
-                    if (minefield[indexL][indexC] != null) {
-                      if (minefield[indexL][indexC] != -1) {
-                        cardColor = Colors.green;
-                      } else {
-                        cardColor = Colors.red;
-                      }
-                    }
+                    final indexL = index % minefield.length;
+                    final indexC = index ~/ minefield.length;
+                    final cardInfo = minefield[indexL][indexC] != null && minefield[indexL][indexC] != 0
+                        ? "${minefield[indexL][indexC]}"
+                        : '';
                     final widget = minefield[indexL][indexC] == null
                         ? _AvailableField(
                             onTap: () async => await controller.revealField(x: indexL, y: indexC),
-                            label: "${minefield[indexL][indexC] ?? ''}",
                           )
-                        : _RevealedField(
-                            isBomb: minefield[indexL][indexC] == -1, label: "${minefield[indexL][indexC]}");
+                        : _RevealedField(isBomb: minefield[indexL][indexC] == -1, label: cardInfo);
                     return AnimatedSwitcher(
                         transitionBuilder: (Widget child, Animation<double> animation) {
                           final rotate = Tween(begin: pi, end: 0.0).animate(animation);
@@ -94,20 +86,21 @@ class MinefieldScreen extends StatelessWidget {
 }
 
 class _AvailableField extends StatelessWidget {
-  const _AvailableField({Key? key, required this.label, required this.onTap}) : super(key: key);
+  const _AvailableField({Key? key, required this.onTap}) : super(key: key);
 
   final Function() onTap;
-  final String label;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: GridTile(
-        child: Card(
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(label),
+      child: LayoutBuilder(
+        builder: (context, constraints) => GridTile(
+          child: Card(
+            child: SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+            ),
           ),
         ),
       ),

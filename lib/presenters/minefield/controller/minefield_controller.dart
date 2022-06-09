@@ -83,7 +83,7 @@ class MinefieldController {
       case GameDificulties.easy:
         return 3;
       case GameDificulties.normal:
-        return 6;
+        return 8;
       case GameDificulties.expert:
         return 20;
       default:
@@ -92,19 +92,47 @@ class MinefieldController {
   }
 
   Future<void> revealField({required int x, required int y}) async {
-    if (_positionIsABomb(l: x, c: y) && _startedGame) {
-      _lostStream.sink.add(true);
-      _playMinefield[x][y] = -1;
-    } else {
-      _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
+    if (_playMinefield[x][y] == null) {
+      if (_positionIsABomb(l: x, c: y) && _startedGame) {
+        _lostStream.sink.add(true);
+        _playMinefield[x][y] = -1;
+      } else {
+        _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
+      }
+      if (!_startedGame) {
+        _startedGame = true;
+        _minefield = _createMinefieldWithBombs();
+        _minefieldStream.sink.add(_minefield);
+        _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
+      }
+      if (_playMinefield[x][y] == 0) {
+        if (!_isBorder(l: x - 1, c: y - 1)) {
+          revealField(x: x - 1, y: y - 1);
+        }
+        if (!_isBorder(l: x - 1, c: y)) {
+          revealField(x: x - 1, y: y);
+        }
+        if (!_isBorder(l: x - 1, c: y + 1)) {
+          revealField(x: x - 1, y: y + 1);
+        }
+        if (!_isBorder(l: x, c: y - 1)) {
+          revealField(x: x, y: y - 1);
+        }
+        if (!_isBorder(l: x, c: y + 1)) {
+          revealField(x: x, y: y + 1);
+        }
+        if (!_isBorder(l: x + 1, c: y - 1)) {
+          revealField(x: x + 1, y: y - 1);
+        }
+        if (!_isBorder(l: x + 1, c: y)) {
+          revealField(x: x + 1, y: y);
+        }
+        if (!_isBorder(l: x + 1, c: y + 1)) {
+          revealField(x: x + 1, y: y + 1);
+        }
+      }
+      _playMinefieldStream.sink.add(_playMinefield);
     }
-    if (!_startedGame) {
-      _startedGame = true;
-      _minefield = _createMinefieldWithBombs();
-      _minefieldStream.sink.add(_minefield);
-      _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
-    }
-    _playMinefieldStream.sink.add(_playMinefield);
   }
 
   int _getNumberOfBombsAroundPosition({required int l, required int c}) {
@@ -137,21 +165,16 @@ class MinefieldController {
   }
 
   bool _positionIsABomb({required int l, required int c}) {
-    if (l < 0 || c < 0 || l >= _minefield.length || c >= _minefield[l].length) {
+    if (_isBorder(l: l, c: c)) {
       return false;
     }
     return _minefield[l][c] == -1;
   }
+
+  bool _isBorder({required int l, required int c}) {
+    if (l < 0 || c < 0 || l >= _minefield.length || c >= _minefield[l].length) {
+      return true;
+    }
+    return false;
+  }
 }
-
-/* playMinefield
-null, null, null
-null, null, null
-null, null, null
- */
-
-/* minefield
-null, -1, null
--1, null, -1
-null, null, null
- */
