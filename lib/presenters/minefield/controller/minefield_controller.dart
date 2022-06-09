@@ -102,6 +102,7 @@ class MinefieldController {
       _startedGame = true;
       _minefield = _createMinefieldWithBombs();
       _minefieldStream.sink.add(_minefield);
+      _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
     }
     _playMinefieldStream.sink.add(_playMinefield);
   }
