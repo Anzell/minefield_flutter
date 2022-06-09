@@ -16,7 +16,18 @@ class MinefieldScreen extends StatelessWidget {
     controller.initializeMinefield(dificulty: _params.dificulty);
     _initReactionLost(context);
     return Scaffold(
-      appBar: AppBar(title: const Text("Jogo")),
+      appBar: AppBar(
+        title: const Text("Jogo"),
+        actions: [
+          TextButton(
+            onPressed: () => controller.initializeMinefield(dificulty: _params.dificulty),
+            child: const Text(
+              "Reiniciar",
+              style: TextStyle(color: Colors.white),
+            ),
+          )
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: StreamBuilder<List<List<int?>>>(

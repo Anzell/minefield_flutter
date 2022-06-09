@@ -95,7 +95,7 @@ class MinefieldController {
     if (_playMinefield[x][y] == null) {
       if (_positionIsABomb(l: x, c: y) && _startedGame) {
         _lostStream.sink.add(true);
-        _playMinefield[x][y] = -1;
+        _revealAllBombsPosition();
       } else {
         _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
       }
@@ -176,5 +176,16 @@ class MinefieldController {
       return true;
     }
     return false;
+  }
+
+  void _revealAllBombsPosition() {
+    for (int x = 0; x < _minefield.length; x++) {
+      for (int y = 0; y < _minefield[x].length; y++) {
+        if (_minefield[x][y] == -1) {
+          _playMinefield[x][y] = -1;
+        }
+      }
+    }
+    _playMinefieldStream.sink.add(_playMinefield);
   }
 }
