@@ -24,6 +24,9 @@ class CustomDificultyConverter implements Converter<CustomDificulty, CustomDific
     if(int.parse(params.numberBombs!) >= int.parse(params.widthC!) * int.parse(params.widthL!)){
       return Left(ValidationFailure(message: CustomDificultyConverterErrorMessages.manyBombs));
     }
+    if(int.parse(params.widthL!) > 20 || int.parse(params.widthC!) > 20){
+      return Left(ValidationFailure(message: CustomDificultyConverterErrorMessages.manyLargeField));
+    }
     return Right(
       CustomDificulty(
         widthC: int.parse(params.widthC!),
@@ -49,4 +52,5 @@ class CustomDificultyConverterErrorMessages {
   static const missingNumberBombs = "É necessário informar o número de bombas";
   static const invalidNumberBombs = "Deve existir ao menos 1 bomba";
   static const manyBombs = "Número de bombas maior que o permitido";
+  static const manyLargeField = "Campo muito grande. Informe um número de largura/altura inferior a 20";
 }
