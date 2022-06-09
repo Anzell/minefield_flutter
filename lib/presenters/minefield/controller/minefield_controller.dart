@@ -15,6 +15,7 @@ class MinefieldController {
   final _winStream = StreamController<bool>();
 
   bool _startedGame = false;
+  bool _needReload = false;
 
   late GameDificulties _dificulty;
   CustomDificulty? _customDificulty;
@@ -27,7 +28,7 @@ class MinefieldController {
     return _lostStream.stream;
   }
 
-  Stream<bool> getWinStream(){
+  Stream<bool> getWinStream() {
     return _winStream.stream;
   }
 
@@ -35,10 +36,13 @@ class MinefieldController {
     _dificulty = dificulty;
     _customDificulty = customDificulty;
     _startedGame = false;
+    _needReload = false;
     _playMinefield = _createmptyList();
     _minefield = _createmptyList();
     _remainingEmptyFields = (_getWidthCMinefield() * _getWidthLMinefield()) - _getBombsNumberMinefield();
     _playMinefieldStream.sink.add(_playMinefield);
+    _lostStream.sink.add(false);
+    _winStream.sink.add(false);
     _minefieldStream.sink.add(_minefield);
   }
 
@@ -126,12 +130,7 @@ class MinefieldController {
   Future<void> revealField({required int x, required int y}) async {
     if (_playMinefield[x][y] == null) {
       if (_positionIsABomb(l: x, c: y) && _startedGame) {
-        _lostStream.sink.add(true);
-        _revealAllBombsPosition();
-        Future.delayed(Duration(seconds: 5), () {
-          _lostStream.sink.add(false);
-          initializeMinefield(dificulty: _dificulty, customDificulty: _customDificulty);
-        });
+        _lossGame();
       } else {
         _playMinefield[x][y] = _getNumberOfBombsAroundPosition(l: x, c: y);
         _remainingEmptyFields--;
@@ -168,15 +167,10 @@ class MinefieldController {
           revealField(x: x + 1, y: y + 1);
         }
       }
-      if(_remainingEmptyFields == 0){
-        _winStream.sink.add(true);
-        _revealAllBombsPosition();
-        Future.delayed(Duration(seconds: 5), () {
-          _winStream.sink.add(false);
-          initializeMinefield(dificulty: _dificulty, customDificulty: _customDificulty);
-        });
-      }
       _playMinefieldStream.sink.add(_playMinefield);
+      if (_remainingEmptyFields == 0) {
+        _winGame();
+      }
     }
   }
 
@@ -232,5 +226,29 @@ class MinefieldController {
       }
     }
     _playMinefieldStream.sink.add(_playMinefield);
+  }
+
+  void _lossGame() {
+    _lostStream.sink.add(true);
+    _revealAllBombsPosition();
+    _needReload = true;
+    Future.delayed(Duration(seconds: 5), () {
+      if(_needReload){
+        _lostStream.sink.add(false);
+        initializeMinefield(dificulty: _dificulty, customDificulty: _customDificulty);
+      }
+    });
+  }
+
+  void _winGame() {
+    _winStream.sink.add(true);
+    _revealAllBombsPosition();
+    _needReload = true;
+    Future.delayed(Duration(seconds: 5), () {
+     if(_needReload){
+       _winStream.sink.add(false);
+       initializeMinefield(dificulty: _dificulty, customDificulty: _customDificulty);
+     }
+    });
   }
 }
